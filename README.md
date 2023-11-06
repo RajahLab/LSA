@@ -1,4 +1,4 @@
-These scripts were used in:
+These scripts and data were used in:
 
 **Post-stimulus Reaction Time at Encoding Predicts Subsequent Source Memory Performance and Modulates Underlying fMRI Activity in Healthy Young Adults** - Gabriela Vélez Largo<sup>1,5*</sup>, Abdelhalim Elshiekh<sup>1*</sup>, Sricharana Rajagopal<sup>2</sup>, Stamatoula Pasvanis<sup>2</sup> and M. Natasha Rajah<sup>2,3,4,5</sup>
 
