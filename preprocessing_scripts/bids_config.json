@@ -1,0 +1,276 @@
+{
+	"descriptions": [{
+			"dataType": "anat",
+			"modalityLabel": "T1w",
+			"criteria": {
+				"SeriesDescription": "*T1_SAG_MPRAGE_iPAT2*"
+			}
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "sbref",
+			"customLabels": "task-EncRun1",
+			"criteria": {
+				"SeriesDescription": "*Enc*Run_1*SBRef"
+			},
+      "sidecarChanges": {
+				"TaskName": "EncRun1"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "bold",
+			"customLabels": "task-EncRun1",
+			"criteria": {
+				"SeriesDescription": "*Enc*Run_1"
+			},
+      "sidecarChanges": {
+				"TaskName": "EncRun1"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "sbref",
+			"customLabels": "task-RetRun1",
+			"criteria": {
+				"SeriesDescription": "*Ret*Run_1*SBRef"
+			},
+      "sidecarChanges": {
+				"TaskName": "RetRun1"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "bold",
+			"customLabels": "task-RetRun1",
+			"criteria": {
+				"SeriesDescription": "*Ret*Run_1"
+			},
+      "sidecarChanges": {
+				"TaskName": "RetRun1"
+			}
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "sbref",
+			"customLabels": "task-EncRun2",
+			"criteria": {
+				"SeriesDescription": "*Enc*Run_2*SBRef"
+			},
+      "sidecarChanges": {
+				"TaskName": "EncRun2"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "bold",
+			"customLabels": "task-EncRun2",
+			"criteria": {
+				"SeriesDescription": "*Enc*Run_2"
+			},
+      "sidecarChanges": {
+				"TaskName": "EncRun2"
+			}
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "sbref",
+			"customLabels": "task-RetRun2",
+			"criteria": {
+				"SeriesDescription": "*Ret*Run_2*SBRef"
+			},
+      "sidecarChanges": {
+				"TaskName": "RetRun2"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "bold",
+			"customLabels": "task-RetRun2",
+			"criteria": {
+				"SeriesDescription": "*Ret*Run_2"
+			},
+      "sidecarChanges": {
+				"TaskName": "RetRun2"
+			}
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "sbref",
+			"customLabels": "task-EncRun3",
+			"criteria": {
+				"SeriesDescription": "*Enc*Run_3*SBRef"
+			},
+      "sidecarChanges": {
+				"TaskName": "EncRun3"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "bold",
+			"customLabels": "task-EncRun3",
+			"criteria": {
+				"SeriesDescription": "*Enc*Run_3"
+			},
+      "sidecarChanges": {
+				"TaskName": "EncRun3"
+			}
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "sbref",
+			"customLabels": "task-RetRun3",
+			"criteria": {
+				"SeriesDescription": "*Ret*Run_3*SBRef"
+			},
+      "sidecarChanges": {
+				"TaskName": "RetRun3"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "bold",
+			"customLabels": "task-RetRun3",
+			"criteria": {
+				"SeriesDescription": "*Ret*Run_3"
+			},
+      "sidecarChanges": {
+				"TaskName": "RetRun3"
+			}
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "sbref",
+			"customLabels": "task-EncRun4",
+			"criteria": {
+				"SeriesDescription": "*Enc*Run_4*SBRef"
+			},
+      "sidecarChanges": {
+				"TaskName": "EncRun4"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "bold",
+			"customLabels": "task-EncRun4",
+			"criteria": {
+				"SeriesDescription": "*Enc*Run_4"
+			},
+      "sidecarChanges": {
+				"TaskName": "EncRun4"
+			}
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "sbref",
+			"customLabels": "task-RetRun4",
+			"criteria": {
+				"SeriesDescription": "*Ret*Run_4*SBRef"
+			},
+      "sidecarChanges": {
+				"TaskName": "RetRun4"
+			}
+
+		},
+		{
+			"dataType": "func",
+			"modalityLabel": "bold",
+			"customLabels": "task-RetRun4",
+			"criteria": {
+				"SeriesDescription": "*Ret*Run_4"
+			},
+      "sidecarChanges": {
+				"TaskName": "RetRun4"
+			}
+		},
+		{
+			"dataType": "fmap",
+			"modalityLabel": "magnitude1",
+			"customLabels": "dir-AP",
+			"criteria": {
+				"SeriesDescription": "gre_field_mapping_3mm_AP",
+				"SidecarFilename": "*_e1.*",
+				"EchoNumber": 1
+			},
+      "sidecarChanges": {
+        "EchoTime": 0.00398
+      }
+		},
+		{
+			"dataType": "fmap",
+			"modalityLabel": "magnitude2",
+			"customLabels": "dir-AP",
+			"criteria": {
+				"SeriesDescription": "gre_field_mapping_3mm_AP",
+				"SidecarFilename": "*_e2.*",
+				"EchoNumber": 2
+			},
+      "sidecarChanges": {
+        "EchoTime": 0.00644
+      }
+		},
+		{
+			"dataType": "fmap",
+			"modalityLabel": "phasediff",
+			"customLabels": "dir-AP",
+			"criteria": {
+				"SeriesDescription": "gre_field_mapping_3mm_AP",
+				"SidecarFilename": "*_ph.*"
+			},
+			"sidecarChanges": {
+				"EchoTime1": 0.00398,
+				"EchoTime2": 0.00644
+			}
+
+		},
+		{
+			"dataType": "fmap",
+			"modalityLabel": "magnitude1",
+			"customLabels": "dir-PA",
+			"criteria": {
+				"SeriesDescription": "gre_field_mapping_3mm_PA",
+				"SidecarFilename": "*_e1.*",
+				"EchoNumber": 1
+			},
+      "sidecarChanges": {
+        "EchoTime": 0.00398
+      }
+		},
+		{
+			"dataType": "fmap",
+			"modalityLabel": "magnitude2",
+			"customLabels": "dir-PA",
+			"criteria": {
+				"SeriesDescription": "gre_field_mapping_3mm_PA",
+				"SidecarFilename": "*_e2.*",
+				"EchoNumber": 2
+			},
+      "sidecarChanges": {
+        "EchoTime": 0.00644
+      }
+		},
+		{
+			"dataType": "fmap",
+			"modalityLabel": "phasediff",
+			"customLabels": "dir-PA",
+			"criteria": {
+				"SeriesDescription": "gre_field_mapping_3mm_PA",
+				"SidecarFilename": "*_ph.*"
+			},
+			"sidecarChanges": {
+				"EchoTime1": 0.00398,
+				"EchoTime2": 0.00644
+			}
+
+		}
+
+	]
+}

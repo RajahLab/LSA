@@ -1,3 +1,3 @@
-Additional fmriprep preprocessing scripts
+All fmriprep related scripts.
 
 -Charana
