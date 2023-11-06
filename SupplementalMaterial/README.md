@@ -1,3 +1,3 @@
-Supplementary material for "paper title"
+Supplementary material 
 
 
