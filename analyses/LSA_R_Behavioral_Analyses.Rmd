@@ -7,7 +7,7 @@ editor_options:
   chunk_output_type: inline
 ---
 
-Description: This R script contains the code used to analyze behavioral data of the Lapses in Sustained Attention (LSA) study for Manuscript entitled "Longer post-stimulus reaction time at encoding predicts poorer subsequent source memory performance and increased midline cortical activity in healthy young adults." by Gabriela Vélez Largo, Abdelhalim Elshiekh, Sricharana Rajagopal, Stamatoula Pasvanis and M. Natasha Rajah.
+Description: This R script contains the code used to analyze behavioral data of the Lapses in Sustained Attention (LSA) study for Manuscript entitled "Slower post-encoding stimulus reaction time predicts poorer subsequent source memory performance and increased midline cortical activity in healthy young adults." by Gabriela Vélez Largo, Abdelhalim Elshiekh, Sricharana Rajagopal, Stamatoula Pasvanis and M. Natasha Rajah.
 
 Inputs: 
 
