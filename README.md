@@ -1,6 +1,6 @@
 These scripts and data were used in:
 
-**Slower post-encoding stimulus reaction time predicts poorer subsequent source memory performance and increased midline cortical activity in healthy young adults.** - Gabriela Vélez Largo<sup>1,5*</sup>, Abdelhalim Elshiekh<sup>1*</sup>, Sricharana Rajagopal<sup>2</sup>, Stamatoula Pasvanis<sup>2</sup> and M. Natasha Rajah<sup>2,3,4,5</sup>
+**Slower post-encoding stimulus reaction time predicts poorer subsequent source memory and increased midline cortical activity.** - Gabriela Vélez Largo<sup>1,5*</sup>, Abdelhalim Elshiekh<sup>1*</sup>, Sricharana Rajagopal<sup>2</sup>, Stamatoula Pasvanis<sup>2</sup> and M. Natasha Rajah<sup>2,3,4,5</sup>
 
 *Shared first authors
 
