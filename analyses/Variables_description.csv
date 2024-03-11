@@ -1,0 +1,83 @@
+﻿ID_scores_N38,
+Variables,Description
+ID,Participant code
+AGE,Years 
+SEX,Male: 1; Female: 2
+Ethnic_gr,Participant ethnic group
+ENG_FR_OTHER,Eng: 1; Fr: 2; other: 3
+Mother_Tongue,"Language 1. 1 = English, 2=French, 3=Spanish, 4=Arabic, 5=Italian, 6= Portuguese, 7=German, 8=Romanian, 9=Russian, 10=Bengali, 11=Bulgarian, 12=Mandarin, 13=Cantonese, 14=Creole, 15=Croatian, 16=Danish, 17=Dutch, 18=Greek, 19=Gujarati, 20=Hungarian, 21=Japanese, 22=Korean, 23=Persian, 24=Polish, 25=Punjabi, 26=Swedish, 27=Papiamento, 28=Afrikans, 30=Hebrew, 31=Hindi, 32=Tamil, 33=Turkish, 34=Gaelic, 35=Manipuri"
+LANGsKnown,Languages known
+LANGSUsed,Languages used (more than 25%)
+EDU,Years of Education
+HANDEDNESS,"1 = Right, 2 = Left, 3 = Ambidextrous"
+DKEFS_LF,DKEFS Letter Fluency (Total FAS)
+Scaled_Score_LF,Scaled Scores Letter Fluency Total Correct
+DKEFS_CF,"DKEFS Category Fluency (Total Aminals, Boy's Names)"
+Scaled_Score_CF,Scaled Scores Category Fluency Total Correct
+DKEFS_CS,DKEFS Category switching
+Scaled_Score_CS,Scaled Scores Category Switching Total Switching Accuracy
+ANART,English NART (score out of 50)
+fNART,French NART (score out of 40)
+PredictedFullScaleIQ,Predicted Fullscale IQ based on NART
+WCST_num_of_trials,# of Trials (cards used)
+WCST_cat_completed,# of Categories Completed
+WCST_cat_exp,# of Categories Experienced
+WCST_perc_correct,Percent correct ((correct responses*100)/#trials))
+WCST_CR,# of Correct Responses
+WCST_TE,# of Total Errors
+WCST_PR,# of Perseverative Responses (Number of errors where participant keeps applying the same rule that would have been correct for the previous category)
+WCST_PR_percent,
+WCST_PE,# of Perseverative Errors (Number of errors where participant keeps applying the same rule even though it is incorrect
+WCST_PE_percent,
+WCST_NPE,# of Non-Perseverative Errors
+WCST_UE,# of Unique Errors
+WCST_Trials_1st_set,# of Trials (cards) to Complete 1st Category
+CFQ_Total,Cognitive failures Questionnaire (Total score)
+CFQ_FRGT,CFQ Forgetfulness
+CFQ_DISTR,CFQ Distractibility
+CFQ_FTRIG,CFQ False Triggering
+MAAS_LO,Mindful Attention Awarness Scale - Lapses Only
+DSSQ_TH,DSSQ - Thinking content (Total)
+DSSQ_TRI,DSSQ - Task-related interferance
+DSSQ_TUI,DSSQ - Task-unrelated interference
+No_of_runs_completed,No. of runs completed
+No_of_encoding_trials_completed,No. of encoding trials completed (some participants did fewer runs)
+Mean_RT,Mean of RT of encoding fixation cross
+Median_RT,Median of RT of encoding fixation cross
+SD_RT ,SD of RT of encoding fixation cross
+Coeff_var,Coefficent of variation of RT of encoding fixation cross
+ENC_No_Of_Responses,No. of responses at Encoding
+ENC_NO_Responses,No. of missed responses (no response) at encoding
+ENC_Missed_Responses_perc,Percentage of missed responses at encoding (no resposne)
+RET_No_Of_Responses,No. of responses at retrieval
+RET_NO_responses,No. of missed responses (no response) at retrieval
+Correct Source,Correct source/total no. of old trials seen
+Hits,General accuracy for old = (correct source + source misssatribution + recognition)/total no. of old trials seen
+Misses,Old items identified as new/total no. of old trials seen
+Recog,Old but don't remember source response/total no. of old trials seen
+Source Missatribution,Old items labelled with incorrect source/total no. of old trials seen
+Source Failure,(Recognition + Source Missatribution + Misses) / total no. Of old trials seen
+No Responses Old,Number of no responses to old trials at retrieval
+Correct Rejection,New items identified as new/total no. of new trials seen
+False Alarms,New items incorrectly categorized as old (False alarm Recog + False alarm SourceDecision) / total no. Of new trials seen
+FA_Recog,New items incorrectly categorized as old but no location /total no. Of new trials seen
+FA_SourceDecision,New items incorrectly categorized as old with location /total no. Of new trials seen
+No Responses New,Number of no responses to new trials at retrieval
+,
+R_RT_N38_PrePost,
+Variables,Description
+ID,Participant code
+RUN,RUN number
+Trial,Trial number within the run
+PostRT,Post-stimulus RT of encoding fixation cross
+PreRT,Pre-stimulus RT of encoding fixation cross
+Fate,Memory fate at retrieval
+Acc_coded,"Accuracy coded according to fate: 0 = No response; 1 = source hit; 2 = source misattribution; 3= recognition/source miss, 4 = miss"
+Source_Acc_coded,Accuracy coded according to source fate: 1 = source hit; 0 = source failure or no response
+Hit_Acc_coded,"Accuracy coded according to hit fate: 1 = hit (source hit, recognition, source misattribution); 0 = hit failure (miss, no response)"
+Stimuli,Stimuli description
+Location,Right or left location of the stimulus
+Category,Object category of the stimulus
+Order_Session,Chronological order of the MRI scan session 
+PreITI1duration,Interval duration in milliseconds between the previous stimulus offset and the previous fixation cross expansion of the current stimulus
+PreITI2duration,Interval duration in milliseconds between the current stimulus offset and the subsequent fixation cross expansion
