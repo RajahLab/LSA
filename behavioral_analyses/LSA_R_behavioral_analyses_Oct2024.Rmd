@@ -1,0 +1,663 @@
+---
+title: "LSA_R_behavioral_analyses.Rmd"
+author: "Gabriela Vélez Largo"
+last updated: "October 31, 2024"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+Description: This R script contains the code used to analyze data of the Lapses in Sustained Attention (LSA) study for Manuscript entitled "Slower post-encoding stimulus reaction time predicts poorer subsequent source memory and increased midline cortical activity" by Gabriela Vélez Largo, Abdelhalim Elshiekh, Sricharana Rajagopal, Stamatoula Pasvanis and M. Natasha Rajah.
+
+Inputs: 
+
+1. "LSA_RT_N38_PrePost.csv": dataset containing trial-by-trial reaction time observations of participants (randomized ID)
+2. "LSA_IDscores_N38.csv": dataset containing mean accuracy rates, and participants' scores of neuropsychological tests and questionnaires (randomized ID).
+
+
+Additional Information:
+Run using R version 4.2.3 (2023-03-15) on on DELL Latitude 5440 13th Gen Intel(R) Core(TM) i7-1355U.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# LIBRARIES
+
+```{r Load libraries}
+library(tidyverse) # version 2.0.0
+library(languageR) # version 1.5.0
+library(arm) # version 1.13.1
+library(broom) # version 1.0.5
+library(margins) #version 0.3.26
+library(lme4) #version 1.1.34
+library(MuMIn) #version 1.47.5
+library(dplyr) #version 1.1.3
+library(see) #version 0.8.0
+library(performance) #version 0.10.5
+library(lmerTest) #version 3.1.3
+library(Hmisc) #version 5.1.1
+library(interactions) #version 1.1.5
+library(sjPlot)#version 2.8.15
+library(gridExtra) #version 2.3
+library(lemon) #version 
+
+#Ensure the functions we use are not mixed with other functions from other packages.
+
+rescale <- arm::rescale
+select <- dplyr::select
+```
+
+
+# IMPORT AND ORGANIZE THE DATA
+```{r Read RT and Scores datasets}
+
+# Read the final data sets (i.e., after exclusions applied), Data with final sample size = 38 participants. 
+
+#Read the Reaction time data set where each participant has ~ 192 observations (48 encoding events/Run x 4)
+
+prepostRT <- read.csv(file=  "LSA_RT_N38_PrePost.csv")
+
+#Remove No responses in Post-stimulus and Pre-stimulus RT values (= 0 secs) and No responses at Retrieval Fate
+
+prepostRT <- filter(prepostRT, PostRT > 0, PreRT > 0, Fate != "No response")
+
+#Read data set containing participants' neuropsychological scores and mean accuracy rates. 
+
+IDscores <- read.csv(file = "LSA_IDscores_N38.csv")
+
+# Determine class of variables
+IDscores$ID = as.factor(IDscores$ID)
+
+```
+
+
+#MERGE
+
+```{r Merge the 2 datasets}
+
+#Merge RT and Scores data sets
+
+IDpostpreRT <- merge(prepostRT,IDscores,by="ID")
+
+#Determine class of variables in all data sets. ID and Stimuli will be Grouping factors in the mixed-effects regression.
+
+prepostRT$Source_Acc_coded <-as.numeric(prepostRT$Source_Acc_coded)
+prepostRT$ID <- as.factor(prepostRT$ID)
+IDpostpreRT$ID <- as.factor(IDpostpreRT$ID)
+IDpostpreRT$Stimuli <- as.factor(IDpostpreRT$Stimuli)
+
+IDpostpreRT$PostITI1duration <- as.factor(IDpostpreRT$PostITI1duration)
+IDpostpreRT$PreITI1duration <- as.factor(IDpostpreRT$PreITI1duration)
+IDpostpreRT$Fate <- as.factor(IDpostpreRT$Fate)
+
+#Remove RT values under 107 msecs 
+
+IDpostpreRT <-  filter(IDpostpreRT, PostRT > 107, PreRT > 107)
+
+
+```
+
+
+#SPLIT DATA ACCORDING TO ITI DURATION (2, 4 OR 6 SECS) - POST RT 
+```{r }
+#In our dataset, the variable PostITI1duration corresponds to the variable time interval between the encoding trial offset (i.e., the first small fixation cross presentation) and the expanded fixation cross. The time interval varies between 2, 4 or 6 seconds).
+
+#Split the data in 3 according to time interval of post-stimulus RT
+
+IDpostpreRT2 <-filter(IDpostpreRT, PostITI1duration %in% c('2000'))
+IDpostpreRT4 <-filter(IDpostpreRT, PostITI1duration %in% c('4000'))
+IDpostpreRT6 <-filter(IDpostpreRT, PostITI1duration %in% c('6000'))
+
+
+```
+
+
+#DESCRIPTIVE STATISTICS
+```{r Descriptives Stats: Accuracy rates and RTs}
+
+#Rates per memory response category
+
+memoryrates<-IDscores %>%
+  summarise(SourceHit_mean = mean(Correct.Source), SourceHit_sd = sd(Correct.Source), SourceMisattribution_mean = mean(Source.misattributions),SourceMisattribution_sd = sd(Source.misattributions), ItemRecognition_mean = mean(Recog), ItemRecognition_sd = sd(Recog), Misses_mean = mean(Misses), Misses_sd = sd(Misses), SourceFailure_mean = mean(Source.Failure), SourceFailure_sd = sd(Source.Failure))
+
+
+#Pre-stimulus RT according to memory response category
+#Acc_coded: 0 = No response; 1 = source hit; 2 = source misattribution; 3= recognition/source miss, 4 = miss. 
+
+PreRT <- IDpostpreRT %>%
+  group_by(Acc_coded) %>%
+  summarise(RT_mean = mean(PreRT), RT_sd = sd(PreRT), n = n()) %>%
+  ungroup()
+
+#Source_Acc_coded : 0 = Source failure, 1 = Source hit.
+
+PreRT2 <- IDpostpreRT %>%
+  group_by(Source_Acc_coded) %>%
+  summarise(RT_mean = mean(PreRT), RT_sd = sd(PreRT), n = n()) %>%
+  ungroup()
+
+#Same for Post-stimulus RT
+#Acc_coded: 0 = No response; 1 = source hit; 2 = source misattribution; 3= recognition/source miss, 4 = miss. 
+
+PostRT <- IDpostpreRT %>%
+  group_by(Acc_coded) %>%
+  summarise(RT_mean = mean(PostRT), RT_sd = sd(PostRT), n = n()) %>%
+  ungroup()
+
+#Source_Acc_coded : 0 = Source failure, 1 = Source hit.
+
+PostRT2 <- IDpostpreRT %>%
+  group_by(Source_Acc_coded) %>%
+  summarise(RT_mean = mean(PostRT), RT_sd = sd(PostRT), n = n()) %>%
+  ungroup()
+
+#Same for retrieval RT
+
+RetRT <- IDpostpreRT %>%
+  group_by(Acc_coded) %>%
+  summarise(RT_mean = mean(RET_RT), RT_sd = sd(RET_RT), n = n()) %>%
+  ungroup()
+
+
+RetRT2 <- IDpostpreRT %>%
+  group_by(Source_Acc_coded) %>%
+  summarise(RT_mean = mean(RET_RT), RT_sd = sd(RET_RT), n = n()) %>%
+  ungroup()
+
+```
+
+
+
+
+#STANDARDIZATION
+
+```{r Standardization, include=FALSE}
+
+#Standardize the predictors as follows: Continuous predictors are mean-centered and divided by 2 standard deviations.
+
+rescale <- arm::rescale
+
+
+# Merged data set
+IDpostpreRT <- mutate(IDpostpreRT, PostRTst = rescale(PostRT),PreRTst = rescale(PreRT), TRIst = rescale(DSSQ_TRI), TUIst = rescale(DSSQ_TUI), CSst = rescale(Scaled_Score_CS),PRst = rescale(WCST_PR_percent), CFQ_Totalst = rescale(CFQ_Total), MAAS_LOst = rescale(MAAS_LO))
+
+
+#Scores data set
+IDscores <- mutate(IDscores,TRIst = rescale(DSSQ_TRI), TUIst = rescale(DSSQ_TUI), CSst = rescale(Scaled_Score_CS),PRst = rescale(WCST_PR_percent), CFQ_Totalst = rescale(CFQ_Total), MAAS_LOst = rescale(MAAS_LO))
+
+#Split data sets according to ITI duration 
+
+#ITI duration = 2 secs
+IDpostpreRT2 <- mutate(IDpostpreRT2, PostRTst = rescale(PostRT),PreRTst = rescale(PreRT), TRIst = rescale(DSSQ_TRI), TUIst = rescale(DSSQ_TUI), CSst = rescale(Scaled_Score_CS),PRst = rescale(WCST_PR_percent), CFQ_Totalst = rescale(CFQ_Total), MAAS_LOst = rescale(MAAS_LO))
+
+#ITI duration = 4 secs
+IDpostpreRT4 <- mutate(IDpostpreRT4, PostRTst = rescale(PostRT),PreRTst = rescale(PreRT), TRIst = rescale(DSSQ_TRI), TUIst = rescale(DSSQ_TUI), CSst = rescale(Scaled_Score_CS),PRst = rescale(WCST_PR_percent), CFQ_Totalst = rescale(CFQ_Total), MAAS_LOst = rescale(MAAS_LO))
+
+#ITI duration = 6 secs
+IDpostpreRT6 <- mutate(IDpostpreRT6, PostRTst = rescale(PostRT),PreRTst = rescale(PreRT), TRIst = rescale(DSSQ_TRI), TUIst = rescale(DSSQ_TUI), CSst = rescale(Scaled_Score_CS),PRst = rescale(WCST_PR_percent), CFQ_Totalst = rescale(CFQ_Total), MAAS_LOst = rescale(MAAS_LO))
+
+```
+
+
+
+#MAIN PRE/POST-STIMULUS RT MODEL SOURCE MEMORY
+```{r Fit main model}
+
+#Fit the mixed-effects logistic regression model for the main analysis. Dependent variable:'Source_Acc_coded' = source hit (1) or failure (0). Two predictors; pre- and post-stimulus RTs (PreRTst and PostRTst respectively). Suffix ‘st’ = predictor standardized. Two grouping factors; participants' ID and Stimuli. Optimizer; used to resolve convergence problems of the fitted model, a better optimizer for GLMMs.
+
+glm_prepost1 <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + (1 + PostRTst |ID) + (1|Stimuli), data=IDpostpreRT, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+summary(glm_prepost1)
+
+#Check significance of an effect by doing likelihood-ratio tests (F-test) between the full and reduced models :
+
+
+#1. Verify if post-stimulus RT (PostRTst) effect is significant. 
+
+#Fit model without PostRTst terms.
+
+glma <- glmer(Source_Acc_coded ~  PreRTst  + (1  |ID) + (1|Stimuli), data=IDpostpreRT, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+
+anova(glm_prepost1, glma)
+
+#2. Verify if post-stimulus RT random slope is significant. 
+
+#Fit model without PostRTst random slope.
+
+glmb <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + (1  |ID) + (1|Stimuli), data=IDpostpreRT, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+
+anova(glm_prepost1, glmb)
+
+#3. Verify if PostRTst random slope correlation with Intercept is significant. 
+
+#Fit the model without correlation term. 
+
+glmc <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + (1 + PostRTst || ID) + (1|Stimuli), data=IDpostpreRT, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+
+anova(glm_prepost1, glmc) 
+
+
+
+```
+
+```{r Goodness of fit}
+
+#Goodness of fit with R square measure
+
+r.squaredGLMM(glm_prepost1)
+
+#Visual check of model assumptions
+check_model(glm_prepost1)
+
+
+```
+
+
+```{r Plot: Predicted Probability of Source Hit as a Function of Post-stimulus RT}
+
+Main_PostRT_pred <- plot_model(glm_prepost1, type = "pred", terms = "PostRTst [all]", title = "") + geom_jitter(aes(x = PostRTst, y = as.numeric(Source_Acc_coded)), size = 0.5, height = 0.02, IDpostpreRT) + geom_linerange(aes(x = 0, ymin = 0, ymax = 1), lty = 2) +
+  xlab("Post-stimulus RT (standardized)") +
+  ylab("P(Source Hit)") 
+
+ggsave(Main_PostRT_pred, file = "Main_PostRT_pred300dpi.png", width=4, height=3, units='in' ,device='tiff', dpi=300)
+
+```
+
+
+
+#POST-HOC ITEM RECOGNITION MODEL
+```{r Fit Item Memory Model}
+
+#Fit the mixed-effects logistic regression model for the item memory analysis. Dependent variable:'Acc_coded' collapsing item recognition and source misattribution. Item + Misattributions = item hit (1). Misses = item failure (0). Two predictors; pre- and post-stimulus RTs (PreRTst and PostRTst respectively). Suffix ‘st’ = predictor standardized. Two grouping factors; participants' ID and Stimuli. Optimizer; used to resolve convergence problems of the fitted model, a better optimizer for GLMMs.
+
+
+#Filter out correct source responses
+
+IDpostpreRTrecog <- filter(IDpostpreRT, Acc_coded %in% c('2', '3','4'))
+
+#Code as 1 and 0 
+
+IDpostpreRTrecog['Acc_coded'][IDpostpreRTrecog['Acc_coded']== '4'] <- '0'  #Misses
+IDpostpreRTrecog['Acc_coded'][IDpostpreRTrecog['Acc_coded']== '2'] <- '1' #Source Misattributions
+IDpostpreRTrecog['Acc_coded'][IDpostpreRTrecog['Acc_coded']== '3'] <- '1' #Item Recognition
+
+#Make as numeric
+IDpostpreRTrecog$Acc_coded = as.numeric(IDpostpreRTrecog$Acc_coded)
+
+
+#Standardize the predictors
+rescale <- arm::rescale
+
+IDpostpreRTrecog <- mutate(IDpostpreRTrecog, PostRTst = rescale(PostRT),PreRTst = rescale(PreRT), TRIst = rescale(DSSQ_TRI), TUIst = rescale(DSSQ_TUI), CSst = rescale(Scaled_Score_CS),PRst = rescale(WCST_PR_percent), CFQ_Totalst = rescale(CFQ_Total), MAAS_LOst = rescale(MAAS_LO))
+
+
+#Fit model - No effect
+
+glm_prepostrecog <- glmer(Acc_coded ~  PreRTst + PostRTst  + (1|ID) + (1|Stimuli), data=IDpostpreRTrecog, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+summary(glm_prepostrecog)
+
+#Goodness of fit with R square measure
+
+r.squaredGLMM(glm_prepostrecog)
+
+#Visual check of model assumptions
+check_model(glm_prepostrecog)
+
+
+
+```
+
+
+
+#SECONDARY PRE/POST-STIMULUS RT MODEL
+```{r Fit secondary model}
+
+#Fit the mixed-effects logistic regression model for the seconday analysis. Dependent variable:'Source_Acc_coded' = source context hit (1) or failure (0). Eight predictors :
+#1.PreRTst = pre-stimulus RT 
+#2.PostRTst= post-stimulus RT 
+#3.TUIst= Task-Unrelated interferences score
+#4.TRIst= Task-Related interferences score 
+#5.CSst= Scaled score of Category Switching ability 
+#6.PRst= Percentage of perseverative responses from WSCT 
+#7.CFQ_Totalst= Total score of Cognitive Failure Questionnaire 
+#8.MAAS_LO = Score of Mindful Attention Awareness Scale-Lapses Only  
+#Predictor : predictor = interaction between the two predictors. Suffix ‘st’ = predictor standardized. Two grouping factors; participants' ID and Stimuli. Optimizer; used to resolve convergence problems of the fitted model, a better optimizer for GLMMs.
+
+glm_prepost2 <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + TUIst + TRIst + CSst  + PRst  + CFQ_Totalst  + MAAS_LOst  +  PostRTst : TUIst + PostRTst : TRIst + PostRTst : CSst  + PostRTst : PRst  +  PostRTst : CFQ_Totalst  + PostRTst : MAAS_LOst + (1 |ID) + (1|Stimuli), data=IDpostpreRT, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+summary(glm_prepost2)
+
+
+#Check significance of an effect by doing likelihood-ratio tests (F-test) between the full and reduced models :
+
+#1. Verify if post-stimulus RT (PostRTst) effect is significant. 
+
+#Fit model without PostRTst terms.
+
+glmd <- glmer(Source_Acc_coded ~   PreRTst  + TUIst + TRIst + CSst  + PRst  + CFQ_Totalst  + MAAS_LOst  + (1 |ID) + (1|Stimuli), data=IDpostpreRT, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+
+anova(glm_prepost2, glmd)
+
+#2. Verify if TUI effect (TUIst) is significant. 
+
+#Fit model without PostRTst random slope.
+
+glme <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + TRIst + CSst  + PRst  + CFQ_Totalst  + MAAS_LOst  +  PostRTst : TRIst + PostRTst : CSst  + PostRTst : PRst  +  PostRTst : CFQ_Totalst  + PostRTst : MAAS_LOst + (1 |ID) + (1|Stimuli), data=IDpostpreRT, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+
+anova(glm_prepost2, glme) 
+
+#3. Verify if interactions are significant.
+
+#TUI:PostRT 
+drop1(glm_prepost2, "PostRTst:TUIst", test = "Chisq")
+
+# CSst:PostRT 
+drop1(glm_prepost2, "PostRTst:CSst", test = "Chisq")
+
+#CFQ:PostRT 
+drop1(glm_prepost2, "PostRTst:CFQ_Totalst", test = "Chisq")
+
+#MASSLO: PostRT 
+drop1(glm_prepost2, "PostRTst:MAAS_LOst", test = "Chisq")
+
+
+```
+
+
+```{r Secondary Model Goodness of fit}
+
+#Goodness of fit with R square measure
+
+r.squaredGLMM(glm_prepost2)
+
+#Visual check of model assumptions
+check_model(glm_prepost2)
+
+
+```
+
+
+```{r Plot: Predicted Probability of Source Hit as Post-stimulus Reaction Time Vary as a Function of Executive and Attention-related Factors }
+#Divide data in terciles (-1SD, median, +1SD) 
+
+#Medians of each tercile of CFQ_Totalst are -0.49248, 0.00777, 0.59898
+interacplot1 <- interact_plot(glm_prepost2, pred = "PostRTst", modx = "CFQ_Totalst", modxvals = "terciles", interval = TRUE,
+              int.width = 0.95, x.label = "Post-stimulus RT \n(standardized)", y.label = "P(Source Hit)", legend.main = "", main.title = "Everyday Cognitive Failures")
+ggsave(interacplot1, file = "Int_CFQ.png", width = 7 , height = 4 )
+
+
+#Medians of each tercile of DSSQ_TUIst are -0.4846, 0.0095, 0.306
+interacplot2 <- interact_plot(glm_prepost2, pred = "PostRTst", modx = "TUIst", modxvals = "terciles",  interval = TRUE,
+              int.width = 0.95,  x.label = "Post-stimulus RT \n(standardized)", y.label = "P(Source Hit)", legend.main = "", main.title = "Task-Unrelated Thoughts")
+ggsave(interacplot2, file = "Int_TUT.png", width = 7 , height = 4 )
+
+
+#Medians of each tercile of Scaled_Score_CSst are -0.4641, 0.0987, 0.6614
+interacplot3 <- interact_plot(glm_prepost2, pred = "PostRTst", modx = "CSst", modxvals = "terciles", interval = TRUE,int.width = 0.95,  x.label = "Post-stimulus RT \n(standardized)", y.label = "P(Source Hit)", legend.main = "", main.title = "Task Switching")
+ggsave(interacplot3, file = "Int_CS.png", width = 7 , height = 4 )
+
+
+#Medians of each tercile of MASS_LOst are -0.5573, 0.0892, 0.5921
+interacplot4 <- interact_plot(glm_prepost2, pred = "PostRTst", modx = "MAAS_LOst", modxvals = "terciles",  interval = TRUE, int.width = 0.95, x.label = "Post-stimulus RT \n(standardized)", y.label = "P(Source Hit)", legend.main = "", main.title = "Everyday Attention Lapses")
+ggsave(interacplot4, file = "Int_Maaslo.png", width = 7 , height = 4 )
+
+
+#Plot Grid 4 Interactions
+grid_4interactions<-grid.arrange(interacplot1, interacplot2, interacplot3, interacplot4, ncol=2, nrow =2)
+
+nt <- theme(legend.title=element_blank()) # options for shared legend
+grid_4interactions<-grid_arrange_shared_legend(interacplot1+nt, interacplot2+nt, interacplot3+nt, interacplot4+nt,nrow =2 , ncol = 2, position='right')
+
+ggsave(grid_4interactions, file = "4_interactions_300dpi.png", width=10, height=7, units='in' ,device='tiff', dpi=300)
+
+```
+
+
+```{r INTERACTION SLOPES WITH JOHNSON NEYMAN INTERVALS}
+  
+#Johnson-Neyman intervals help identify the specific values of the moderator variable where this interaction effect becomes statistically significant.
+
+
+#Post-RT Slope analysis for TUT
+  
+sim_slopes(glm_prepost2, pred = PostRTst, modx = TUIst, johnson_neyman = TRUE, jnplot = TRUE, control.fdr = TRUE)
+
+#Post-RT Slope analysis for CFQ
+  
+ sim_slopes(glm_prepost2, pred = PostRTst, modx = CFQ_Totalst, johnson_neyman = TRUE, jnplot = TRUE, control.fdr = TRUE) 
+ 
+#Post-RT Slope analysis for CS-DKEFS
+ 
+ sim_slopes(glm_prepost2, pred = PostRTst, modx = CSst, johnson_neyman = TRUE, jnplot = TRUE, control.fdr = TRUE)
+ 
+ #Post-RT Slope analysis for MAAS-LO
+ 
+ sim_slopes(glm_prepost2, pred = PostRTst, modx = MAAS_LOst, johnson_neyman = TRUE, jnplot = TRUE, control.fdr = TRUE)
+ 
+```
+
+
+
+#MARGINAL EFFECTS
+
+```{r Average marginal effects}
+
+#Fixed effects estimates for an average stimulus and participant in probability space.
+
+marginal.effect1 <- margins(glm_prepost1)  
+summary(marginal.effect1)
+
+marginal.effect2 <- margins(glm_prepost2)
+summary(marginal.effect2)
+
+```
+
+
+
+
+#ITI 3 MODELS FITTING
+
+```{r Fitting models according to variable ITI duration (2, 4 or 6 secs)}
+#Interval = 2 seconds
+
+#Fitting a similar model as the main model reducing the observations to PostITI1duration = 2 sec)
+
+glm_prepost1.2 <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + (1|ID) + (1|Stimuli), data=IDpostpreRT2, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+summary(glm_prepost1.2)
+
+
+#Check significance of an effect by doing likelihood-ratio tests (F-test) between the full and reduced models :
+
+
+#1. Verify if post-stimulus RT (PostRTst) effect is significant. 
+
+#Fit model without PostRTst terms.
+
+a2 <- glmer(Source_Acc_coded ~  PreRTst  + (1|ID) + (1|Stimuli), data=IDpostpreRT2, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+
+anova(glm_prepost1.2,a2)
+
+
+
+#Interval = 4 seconds
+
+#Fitting a similar model as the main model reducing the observations to PostITI1duration = 4 sec)
+
+glm_prepost1.4 <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + (1 | ID) + (1|Stimuli), data=IDpostpreRT4, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+summary(glm_prepost1.4)
+
+#1. Verify if post-stimulus RT (PostRTst) effect is significant. 
+
+#Fit model without PostRTst terms.
+
+a4<-glmer(Source_Acc_coded ~  PreRTst  + (1 |ID) + (1|Stimuli), data=IDpostpreRT4, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+anova(glm_prepost1.4,a4)
+
+
+#Interval = 6 seconds
+
+#Fitting a similar model as the main model reducing the observations to PostITI1duration = 6 sec)
+
+glm_prepost1.6 <- glmer(Source_Acc_coded ~  PreRTst + PostRTst + (1|ID) + (1|Stimuli), data=IDpostpreRT6, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+summary(glm_prepost1.6)
+
+#1. Verify if post-stimulus RT (PostRTst) effect is significant. 
+
+#Fit model without PostRTst terms.
+
+a6<-glmer(Source_Acc_coded ~  PreRTst + (1|ID) + (1|Stimuli), data=IDpostpreRT6, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+anova(glm_prepost1.6,a6)
+```
+
+
+```{r Goodness of fit}
+
+#Goodness of fit with R square measure
+
+r.squaredGLMM(glm_prepost1.2)
+
+r.squaredGLMM(glm_prepost1.4)
+
+r.squaredGLMM(glm_prepost1.6)
+
+#Bayesian Information Criterion
+
+BIC(glm_prepost1.2,glm_prepost1.4,glm_prepost1.6)
+
+
+```
+
+#MARGINAL EFFECTS
+
+```{r Average marginal effects}
+
+#Fixed effects estimates for an average stimulus and participant in probability space.
+
+marginal.effect1.2 <- margins(glm_prepost1.2)  
+summary(marginal.effect1.2)
+
+marginal.effect1.4 <-margins(glm_prepost1.4)
+summary(marginal.effect1.4)
+
+```
+
+
+
+#SECONDARY MODEL ITI 4 secs
+
+```{r ITI Secondary model 4 seconds}
+
+#Fit the mixed-effects logistic regression model for the secondary analysis according to ITI duration (2 or 4 secs). Dependent variable:'Source_Acc_coded' = source context hit (1) or failure (0). Eight predictors :
+#1.PreRTst = pre-stimulus RT 
+#2.PostRTst= post-stimulus RT 
+#3.TUIst= Task-Unrelated interferences score
+#4.TRIst= Task-Related interferences score 
+#5.CSst= Scaled score of Category Switching ability 
+#6.PRst= Percentage of perseverative responses from WSCT 
+#7.CFQ_Totalst= Total score of Cognitive Failure Questionnaire 
+#8.MAAS_LO = Score of Mindful Attention Awareness Scale-Lapses Only  
+#Predictor : predictor = interaction between the two predictors. Suffix ‘st’ = predictor standardized. Two grouping factors; participants' ID and Stimuli. Optimizer; used to resolve convergence problems of the fitted model, a better optimizer for GLMMs.
+
+
+
+#ITI = 2 seconds - Only post-RT effect is significant
+
+glm_postsec1.2 <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + TUIst + TRIst + CSst  + PRst  + CFQ_Totalst  + MAAS_LOst  +  PostRTst : TUIst + PostRTst : TRIst + PostRTst : CSst  + PostRTst : PRst  +  PostRTst : CFQ_Totalst  + PostRTst : MAAS_LOst + (1 |ID) + (1|Stimuli), data=IDpostpreRT2, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+summary(glm_postsec1.2)
+
+
+#ITI = 4 seconds - Similar effects compared to initial secondary model
+glm_postsec1.4 <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + TUIst + TRIst + CSst  + PRst  + CFQ_Totalst  + MAAS_LOst  +  PostRTst : TUIst + PostRTst : TRIst + PostRTst : CSst  + PostRTst : PRst  +  PostRTst : CFQ_Totalst  + PostRTst : MAAS_LOst + (1 |ID) + (1|Stimuli), data=IDpostpreRT4, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+summary(glm_postsec1.4)
+
+#Check significance of an effect by doing likelihood-ratio tests (F-test) between the full and reduced models :
+
+#1. Verify if post-stimulus RT (PostRTst) effect is significant. 
+
+#Fit model without PostRTst terms.
+
+glm1.4a <- glmer(Source_Acc_coded ~   PreRTst  + TUIst + TRIst + CSst  + PRst  + CFQ_Totalst  + MAAS_LOst  + (1 |ID) + (1|Stimuli), data=IDpostpreRT4, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+
+anova(glm_postsec1.4, glm1.4a)
+
+#2. Verify if TUI effect (TUIst) is significant. 
+
+#Fit model without TUT terms
+
+glm1.4b <- glmer(Source_Acc_coded ~  PreRTst + PostRTst  + TRIst + CSst  + PRst  + CFQ_Totalst  + MAAS_LOst  +  PostRTst : TRIst + PostRTst : CSst  + PostRTst : PRst  +  PostRTst : CFQ_Totalst  + PostRTst : MAAS_LOst + (1 |ID) + (1|Stimuli), data=IDpostpreRT4, family='binomial', control = glmerControl(optimizer = "bobyqa"))
+
+#Perform F-test between full and reduced models.
+
+anova(glm_postsec1.4, glm1.4b) 
+
+#3. Verify if interactions are significant.
+
+#TUI:PostRT 
+drop1(glm_postsec1.4, "PostRTst:TUIst", test = "Chisq")
+
+# CSst:PostRT 
+drop1(glm_postsec1.4, "PostRTst:CSst", test = "Chisq")
+
+#CFQ:PostRT 
+drop1(glm_postsec1.4, "PostRTst:CFQ_Totalst", test = "Chisq")
+
+
+
+
+
+
+```
+
+
+```{r Secondary Model Gooddess of fit 4 secs}
+
+#Goodness of fit with R square measure
+
+r.squaredGLMM(glm_postsec1.4)
+
+
+
+```
+
+
+
+```{r Correlation matrix between 4 attention scales}
+#standardized factors 
+
+fourfactors <- IDscores[, c('CFQ_Totalst', 'TUIst', 'CSst', 'MAAS_LOst')]
+
+# Plot matrix
+corrplot(cor(fourfactors))
+
+# P-values
+cormatrixp <- rcorr(as.matrix(fourfactors))
+
+sink("Correlation4scalesrescaled.txt.")
+print(cormatrixp)
+sink()
+
+cormatrixp
+```
+
+
+
